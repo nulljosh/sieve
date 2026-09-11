@@ -48,47 +48,34 @@
   footer{margin-top:56px; color:var(--muted); font-size:13px; border-top:1px solid var(--border); padding-top:20px;}
   footer a{color:var(--muted);}
 </style>
-<link rel="stylesheet" href="devices.css">
-<script>
-// ponytail: UA sniff, good enough for a mockup. iphone is the default.
-// ?frame=1 = hero/copy stripped for the landing demo device frame only. Distinct from
-// ?embed, which the iOS/macOS WKWebView wrapper already uses to load the full dashboard.
-(function(u,d){d=/Android/.test(u)?'android':/iPhone|iPad/.test(u)?'iphone':/Windows/.test(u)?'windows':/Mac/.test(u)?'mac':'iphone';document.documentElement.dataset.device=d;if(/[?&]frame\b/.test(location.search))document.documentElement.classList.add('demoframe')})(navigator.userAgent);
-</script>
 <style>
-/* Live demo: the real app in a frame matching the visitor's device (nimble treatment) */
-.demo{margin:2rem auto 0;text-align:center;position:relative;z-index:2}
-.demo .device-screen{aspect-ratio:9/19.5}
-.demo .device-mac .device-screen,.demo .device-windows .device-screen{aspect-ratio:16/10}
-.demo .device-screen iframe{position:absolute;top:0;left:0;border:0;display:block;transform-origin:0 0;width:390px;height:845px;background:#fff}
-.demo .device-mac .device-screen iframe,.demo .device-windows .device-screen iframe{width:1024px;height:640px}
-.demo-caption{font-size:.9rem;opacity:.65;margin:1rem 0 0}
-/* frame=1 is the phone/mac mockup's own content: show only the live inbox app, nothing else from the marketing page */
-.demoframe .demo,.demoframe footer,.demoframe nav,.demoframe .brand,.demoframe h1,.demoframe .lede,.demoframe .subhead,.demoframe .grid,.demoframe .ghlink,.demoframe .panel:not(#inbox){display:none!important}
-.demoframe{padding:0;}
-.demoframe .wrap{padding:0;max-width:none;}
-.demoframe #inbox{margin:0;border:0;min-height:100vh;padding:16px;}
-.demoframe #inboxBody a.btn{margin-top:16px;}
+/* The page IS the mail app (same idea as Lucarne: no separate hero, the chrome bar +
+   inbox list ARE the landing page, not a screenshot of them). */
+.bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;padding:10px 20px;background:var(--panel);border-bottom:1px solid var(--border);margin:0 -20px}
+.bar img{width:26px;height:26px;border-radius:7px}
+.bar strong{font-size:15px;font-weight:600}
+.bar span{font-size:13px;color:var(--muted);flex:1}
+.bar a.btn{margin:0;padding:7px 14px;font-size:13px}
+.app{min-height:calc(100vh - 47px);min-height:calc(100dvh - 47px);margin:0 -20px;padding:0 20px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="brand"><img src="icon.svg" alt=""><span>Siftbox</span></div>
+<header class="bar">
+  <img src="icon.svg" alt=""><strong>Siftbox</strong>
+  <span>Reads your Gmail, scores the junk, unsubscribes for real.</span>
+  <a class="btn" href="/auth/start" id="ctaOpen">Connect Gmail</a>
+</header>
 
-  <h1>Your inbox already knows<br>what's junk.</h1>
-  <p class="lede">Connect Gmail and Siftbox reads your inbox, scores the junk, and clears it in one tap — real unsubscribe, not a filter rule. No screenshots, no manual clicking.</p>
-<div class="demo">
-  <div class="device device-iphone" id="demoFrame" data-title="Siftbox"><div class="device-screen"><iframe id="demoApp" title="Siftbox, live" loading="lazy" data-src="./?frame=1"></iframe></div></div>
-  <p class="demo-caption">This is the <span id="demoDev">iPhone</span> app, live. Try it. Also on macOS and web.</p>
-</div>
-<script>
-(function(){var names={iphone:'iPhone',android:'Android',mac:'Mac',windows:'Windows'},dev=document.documentElement.dataset.device,f=document.getElementById('demoFrame'),i=document.getElementById('demoApp');
-if(!names[dev])dev='iphone';f.className='device device-'+dev;document.getElementById('demoDev').textContent=names[dev];
-if(!document.documentElement.classList.contains('demoframe'))i.src=i.dataset.src;
-function fit(){i.style.transform='scale('+(i.parentNode.clientWidth/i.offsetWidth)+')';}fit();addEventListener('resize',fit);})();
-</script>
+<div class="wrap" id="app" style="padding-top:24px">
+  <div class="panel" id="inbox" style="min-height:0;">
+    <h3 style="margin:0 0 12px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Your inbox</h3>
+    <div id="inboxBody" style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;"></div>
+  </div>
 
-  <p class="subhead">A real inbox app — web, iOS, macOS — plus a Claude Code skill for the dev-tool-alert half of the job. Nothing gets touched until you tap it.</p>
+  <div class="panel" id="history" style="min-height:0;">
+    <h3 style="margin:0 0 12px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Run history</h3>
+    <div id="historyList" class="out" style="min-height:0;">loading…</div>
+  </div>
 
   <div class="grid">
     <div class="card">
@@ -107,16 +94,6 @@ function fit(){i.style.transform='scale('+(i.parentNode.clientWidth/i.offsetWidt
       <h3>Dry run by default</h3>
       <p>Every run reads and classifies first. Deleting or archiving is a separate, explicit pass.</p>
     </div>
-  </div>
-
-  <div class="panel" id="inbox" style="min-height:0;">
-    <h3 style="margin:0 0 12px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Your inbox</h3>
-    <div id="inboxBody" style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;"></div>
-  </div>
-
-  <div class="panel" id="history" style="min-height:0;">
-    <h3 style="margin:0 0 12px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Run history</h3>
-    <div id="historyList" class="out" style="min-height:0;">loading…</div>
   </div>
 
   <a class="btn ghlink" href="https://github.com/nulljosh/siftbox">Source on GitHub →</a>

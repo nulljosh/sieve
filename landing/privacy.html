@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Siftbox: Privacy</title>
+<link rel="icon" href="icon.svg">
+<style>
+  :root{--bg:#fafafa;--text:#111;--muted:#666;}
+  @media (prefers-color-scheme: dark){:root{--bg:#0b0b0c;--text:#f2f2f0;--muted:#9a9a97;}}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;padding:0 20px;}
+  .wrap{max-width:640px;margin:0 auto;padding-block:64px 40px;}
+  h1{font-size:28px;margin:0 0 24px;}
+  h2{font-size:16px;margin:32px 0 8px;}
+  p{font-size:16px;line-height:1.6;color:var(--muted);margin:0 0 16px;}
+  a{color:var(--text);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Privacy</h1>
+<p>Siftbox connects to your Gmail account with your permission (Google Sign-In) to read, score, and act on messages in your inbox. Nothing about your mail is sent anywhere except directly between your device and Google's Gmail API.</p>
+
+<h2>What Siftbox accesses</h2>
+<p>Message headers and bodies in your Gmail inbox, to score and display them. Labels, so it can archive or delete on your request. It never sends outbound mail on your behalf.</p>
+
+<h2>What Siftbox stores</h2>
+<p>An OAuth access/refresh token, encrypted at rest in Cloudflare KV, so you don't have to reconnect every visit. No message content is stored — inbox data is read live from Gmail each time you open the app and discarded after rendering.</p>
+
+<h2>What Siftbox never does</h2>
+<p>Sell or share your data with third parties. Use your mail for advertising. Run in the background without you opening the app.</p>
+
+<h2>Revoking access</h2>
+<p>Remove Siftbox's access anytime at <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</p>
+
+<h2>Contact</h2>
+<p>Questions: <a href="https://heyitsmejosh.com">heyitsmejosh.com</a>.</p>
+</div>
+</body>
+</html>
