@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sieve — inbox triage for Claude Code</title>
+<meta name="description" content="A Claude Code skill that reads your inbox headlessly, files real alerts, scores and clears the junk.">
+<link rel="icon" href="icon.svg">
+<style>
+  :root{
+    --bg:#0b0b0c; --panel:#131315; --border:#242427;
+    --text:#f2f2f0; --muted:#9a9a97; --accent:#d93f0b;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    padding:0 20px;
+  }
+  .wrap{max-width:720px; margin:0 auto; padding-block:64px 40px;}
+  .brand{display:flex; align-items:center; gap:14px; margin-bottom:36px;}
+  .brand img{width:48px; height:48px; border-radius:12px;}
+  .brand span{font-size:20px; font-weight:600; letter-spacing:-0.01em;}
+  h1{font-size:clamp(28px,5vw,42px); line-height:1.15; letter-spacing:-0.02em; margin:0 0 20px;}
+  p{font-size:17px; line-height:1.6; color:var(--muted); margin:0 0 16px; max-width:56ch;}
+  .lede{color:var(--text);}
+  .panel{
+    background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    padding:22px 24px; margin:32px 0; font-size:15px; line-height:1.7;
+  }
+  .panel .cmd{color:var(--accent); font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+  .panel .out{color:var(--muted); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; white-space:pre-wrap;}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:32px 0;}
+  @media (max-width:520px){.grid{grid-template-columns:1fr;}}
+  .card{border:1px solid var(--border); border-radius:12px; padding:18px 20px;}
+  .card h3{font-size:14px; margin:0 0 8px; letter-spacing:.02em; text-transform:uppercase; color:var(--muted);}
+  .card p{font-size:14px; margin:0; color:var(--text);}
+  a.btn{
+    display:inline-flex; align-items:center; gap:8px; margin-top:8px;
+    color:var(--text); text-decoration:none; border:1px solid var(--border);
+    padding:10px 18px; border-radius:10px; font-size:14px;
+  }
+  a.btn:hover{border-color:var(--accent);}
+  footer{margin-top:56px; color:var(--muted); font-size:13px; border-top:1px solid var(--border); padding-top:20px;}
+  footer a{color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><img src="icon.svg" alt=""><span>sieve</span></div>
+
+  <h1>Your inbox already knows<br>what's junk.</h1>
+  <p class="lede">sieve reads every account headlessly, sorts real alerts from noise, and closes the loop on both — no screenshots, no manual unsubscribe clicking.</p>
+  <p>A Claude Code skill, not another inbox app. Dry run first, always. Nothing gets touched until you say go.</p>
+
+  <div class="panel">
+    <div class="cmd">/mail</div>
+    <div class="out">3 dev-tool alerts, 1 already resolved (skipped)
+1 App Store rejection → filed to litigate/roadmap.md
+9 junk, scored 2+ signals each — dry run, nothing touched yet</div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Real alerts</h3>
+      <p>App Store Connect, Vercel, Sentry, GitHub Actions — matched to the project, checked against its roadmap and memory, fixed on the spot or filed.</p>
+    </div>
+    <div class="card">
+      <h3>Spam scoring</h3>
+      <p>Domain mismatch, urgency language, obfuscated links, unsubscribe headers from senders nobody asked for. Two signals confirms junk.</p>
+    </div>
+    <div class="card">
+      <h3>One-click unsubscribe</h3>
+      <p>POSTs straight to the sender's RFC 8058 endpoint where supported — no browser, no click-through, no confirmation page.</p>
+    </div>
+    <div class="card">
+      <h3>Dry run by default</h3>
+      <p>Every run reads and classifies first. Deleting or archiving is a separate, explicit pass.</p>
+    </div>
+  </div>
+
+  <a class="btn" href="https://github.com/nulljosh/sieve">Source on GitHub →</a>
+
+  <footer>
+    MIT licensed. Built by <a href="https://heyitsmejosh.com">Joshua Trommel</a>.
+  </footer>
+</div>
+</body>
+</html>

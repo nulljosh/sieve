@@ -1,0 +1,17 @@
+{
+  "name": "sieve",
+  "license": "MIT",
+  "description": "Inbox triage and cleanup skill for Claude Code — files real alerts, scores and clears junk.",
+  "keywords": [
+    "email",
+    "triage",
+    "spam",
+    "claude-code",
+    "automation"
+  ],
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  }
+}

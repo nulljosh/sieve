@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 260" width="720" height="260" font-family="-apple-system, Helvetica, Arial, sans-serif">
+  <rect width="720" height="260" fill="#ffffff"/>
+
+  <!-- Sources -->
+  <rect x="20" y="30" width="140" height="50" rx="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/>
+  <text x="90" y="60" font-size="13" text-anchor="middle" fill="#111">Mail.app</text>
+
+  <rect x="20" y="100" width="140" height="50" rx="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/>
+  <text x="90" y="130" font-size="13" text-anchor="middle" fill="#111">Gmail (MCP)</text>
+
+  <!-- Sieve core -->
+  <rect x="270" y="65" width="160" height="110" rx="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/>
+  <text x="350" y="105" font-size="14" text-anchor="middle" fill="#111" font-weight="600">sieve</text>
+  <text x="350" y="125" font-size="11" text-anchor="middle" fill="#555">spam scoring</text>
+  <text x="350" y="141" font-size="11" text-anchor="middle" fill="#555">bucket + triage</text>
+  <text x="350" y="157" font-size="11" text-anchor="middle" fill="#555">dry run default</text>
+
+  <!-- Outputs -->
+  <rect x="520" y="20" width="180" height="50" rx="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/>
+  <text x="610" y="50" font-size="13" text-anchor="middle" fill="#111">roadmap.md filing</text>
+
+  <rect x="520" y="90" width="180" height="50" rx="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/>
+  <text x="610" y="120" font-size="13" text-anchor="middle" fill="#111">one-click unsubscribe</text>
+
+  <rect x="520" y="160" width="180" height="50" rx="8" fill="#ffffff" stroke="#111" stroke-width="1.5"/>
+  <text x="610" y="190" font-size="13" text-anchor="middle" fill="#111">archive / delete</text>
+
+  <!-- arrows -->
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#111"/>
+    </marker>
+  </defs>
+  <line x1="160" y1="55" x2="270" y2="110" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="160" y1="125" x2="270" y2="130" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="430" y1="100" x2="520" y2="45" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="430" y1="120" x2="520" y2="115" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="430" y1="150" x2="520" y2="185" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>
