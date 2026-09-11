@@ -78,7 +78,12 @@
 .demo .device-screen iframe{position:absolute;top:0;left:0;border:0;display:block;transform-origin:0 0;width:390px;height:845px;background:#fff}
 .demo .device-mac .device-screen iframe,.demo .device-windows .device-screen iframe{width:1024px;height:640px}
 .demo-caption{font-size:.9rem;opacity:.65;margin:1rem 0 0}
-.demoframe .demo,.demoframe footer,.demoframe nav,.demoframe .brand,.demoframe h1,.demoframe .lede,.demoframe .grid{display:none!important}
+/* frame=1 is the phone/mac mockup's own content: show only the live inbox app, nothing else from the marketing page */
+.demoframe .demo,.demoframe footer,.demoframe nav,.demoframe .brand,.demoframe h1,.demoframe .lede,.demoframe .subhead,.demoframe .grid,.demoframe .ghlink,.demoframe .panel:not(#inbox){display:none!important}
+.demoframe{padding:0;}
+.demoframe .wrap{padding:0;max-width:none;}
+.demoframe #inbox{margin:0;border:0;min-height:100vh;padding:16px;}
+.demoframe #inboxBody a.btn{margin-top:16px;}
 </style>
 </head>
 <body>
@@ -90,7 +95,7 @@
   <p class="lede">Connect Gmail and sieve reads your inbox, scores the junk, and clears it in one tap — real unsubscribe, not a filter rule. No screenshots, no manual clicking.</p>
 <div class="demo">
   <div class="device device-iphone" id="demoFrame" data-title="Sieve"><div class="device-screen"><iframe id="demoApp" title="Sieve, live" loading="lazy" data-src="./?frame=1"></iframe></div></div>
-  <p class="demo-caption">This is the <span id="demoDev">iPhone</span> app, live. Try it.</p>
+  <p class="demo-caption">This is the <span id="demoDev">iPhone</span> app, live. Try it. Also on macOS and web.</p>
 </div>
 <script>
 (function(){var names={iphone:'iPhone',android:'Android',mac:'Mac',windows:'Windows'},dev=document.documentElement.dataset.device,f=document.getElementById('demoFrame'),i=document.getElementById('demoApp');
@@ -99,7 +104,7 @@ if(!document.documentElement.classList.contains('demoframe'))i.src=i.dataset.src
 function fit(){i.style.transform='scale('+(i.parentNode.clientWidth/i.offsetWidth)+')';}fit();addEventListener('resize',fit);})();
 </script>
 
-  <p>A real inbox app — web, iOS, macOS — plus a Claude Code skill for the dev-tool-alert half of the job. Nothing gets touched until you tap it.</p>
+  <p class="subhead">A real inbox app — web, iOS, macOS — plus a Claude Code skill for the dev-tool-alert half of the job. Nothing gets touched until you tap it.</p>
 
   <div class="panel">
     <div class="cmd" id="demoCmd"></div>
@@ -135,7 +140,7 @@ function fit(){i.style.transform='scale('+(i.parentNode.clientWidth/i.offsetWidt
     <div id="historyList" class="out" style="min-height:0;">loading…</div>
   </div>
 
-  <a class="btn" href="https://github.com/nulljosh/sieve">Source on GitHub →</a>
+  <a class="btn ghlink" href="https://github.com/nulljosh/sieve">Source on GitHub →</a>
 
   <footer>
     MIT licensed. Built by <a href="https://heyitsmejosh.com">Joshua Trommel</a>.
@@ -292,6 +297,7 @@ dry run complete, nothing else touched`;
   async function run(){
     const caret = document.createElement('span');
     caret.className = 'caret';
+    await new Promise(r => setTimeout(r, 600 + Math.random() * 1400)); // stagger vs. the envelope background so both loops don't feel synced
     while(true){
       cmdEl.textContent = "";
       outEl.textContent = "";
