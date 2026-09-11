@@ -1,6 +1,6 @@
 {
   "description": "An inbox fills up whether you look at it or not. Dev-tool alerts that actually need a fix. Newsletters you never asked twice for. Notification spam wearing a real sender's name. Sorting it by hand is the same ten minutes every day, spent the same way.\n\nSiftbox connects to your Gmail and reads your actual inbox, not a copy of it. Every message gets scored before anything happens to it: sender/domain mismatch, urgency language, an unsubscribe header nobody asked for. Two or more signals means junk.\n\nOnce something's flagged, clearing it is one tap. Unsubscribe sends a real RFC 8058 one-click request straight to the sender, the same standard every major mail provider supports, so nothing gets left half-cleared. Archive and delete are just as direct. Nothing happens until you tap it.\n\nSign in with Google, and Siftbox is ready. Same experience on web, iPhone, and Mac.",
-  "keywords": "inbox,email,gmail,unsubscribe,spam,cleanup,mail,declutter,filter,junk",
+  "keywords": "inbox,email,unsubscribe,spam,cleanup,declutter,filter,junk",
   "marketingUrl": "https://siftbox.heyitsmejosh.com",
   "promotionalText": "Connect Gmail. Siftbox scores the junk and clears it in one tap.",
   "supportUrl": "https://siftbox.heyitsmejosh.com"

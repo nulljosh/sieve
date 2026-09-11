@@ -4,8 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Siftbox: inbox triage app</title>
-<meta name="description" content="Connect Gmail, Outlook, or iCloud and Siftbox reads your inbox, scores the junk, and clears it in one tap.">
+<meta name="description" content="Connect Gmail or iCloud and Siftbox reads your inbox, scores the junk, and clears it in one tap. Outlook coming soon.">
 <link rel="icon" href="icon.svg">
+<script>
+// Native app windows already show "Siftbox" in their title bar — don't repeat the wordmark inside the page.
+if (/[?&]embed\b/.test(location.search)) document.documentElement.classList.add('is-embed');
+</script>
 <style>
   :root{
     --bg:#fafafa; --panel:#ffffff; --border:#e4e4e2;
@@ -31,20 +35,34 @@
   p{font-size:17px; line-height:1.6; color:var(--muted); margin:0 0 16px; max-width:56ch;}
   .lede{color:var(--text);}
   .panel{
-    background:var(--panel); border:1px solid var(--border);
-    padding:22px 24px; margin:32px 0; font-size:15px; line-height:1.7;
+    background:color-mix(in srgb, var(--panel) 70%, transparent);
+    backdrop-filter:blur(24px) saturate(160%); -webkit-backdrop-filter:blur(24px) saturate(160%);
+    border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius:20px; box-shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+    padding:24px; margin:32px 0; font-size:15px; line-height:1.7;
+    text-align:center;
   }
+  .panel h3{text-align:center;}
   .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:32px 0;}
   @media (max-width:520px){.grid{grid-template-columns:1fr;}}
-  .card{border:1px solid var(--border); padding:18px 20px;}
-  .card h3{font-size:14px; margin:0 0 8px; letter-spacing:.02em; text-transform:uppercase; color:var(--muted);}
-  .card p{font-size:14px; margin:0; color:var(--text);}
-  a.btn{
-    display:inline-flex; align-items:center; gap:8px; margin-top:8px;
-    color:var(--text); text-decoration:none; border:1px solid var(--border);
-    padding:10px 18px; font-size:14px;
+  .card{
+    background:color-mix(in srgb, var(--panel) 60%, transparent);
+    backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+    border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius:16px; padding:20px; text-align:center;
   }
-  a.btn:hover{border-color:var(--accent); color:var(--accent);}
+  .card h3{font-size:14px; margin:0 0 8px; letter-spacing:.02em; text-transform:uppercase; color:var(--muted);}
+  .card p{font-size:14px; margin:0 auto; color:var(--text);}
+  a.btn, button.btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px; margin-top:8px;
+    color:var(--text); text-decoration:none; border:1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    background:color-mix(in srgb, var(--panel) 55%, transparent);
+    backdrop-filter:blur(16px) saturate(160%); -webkit-backdrop-filter:blur(16px) saturate(160%);
+    padding:10px 18px; font-size:14px; border-radius:999px;
+    font-family:inherit; cursor:pointer; transition:transform .15s ease, border-color .15s ease;
+  }
+  a.btn:hover, button.btn:hover:not(:disabled){border-color:var(--accent); color:var(--accent); transform:translateY(-1px);}
+  button.btn:disabled{cursor:not-allowed;}
   footer{margin-top:56px; color:var(--muted); font-size:13px; border-top:1px solid var(--border); padding-top:20px;}
   footer a{color:var(--muted);}
 </style>
@@ -63,6 +81,7 @@
 .hero .brand span{font-size:30px}
 .hero h1{margin:0 0 16px}
 .hero .lede{margin:0 auto 28px;color:var(--muted)}
+.is-embed .hero .brand{display:none}
 </style>
 </head>
 <body>
@@ -71,8 +90,9 @@
   <div class="inner">
     <div class="brand"><img src="icon.svg" alt=""><span>Siftbox</span></div>
     <h1>Your inbox already knows<br>what's junk.</h1>
-    <p class="lede">Connect Gmail, Outlook, or iCloud. Siftbox reads it, scores the junk, and unsubscribes for real.</p>
+    <p class="lede">Connect Gmail or iCloud. Siftbox reads it, scores the junk, and unsubscribes for real. Outlook coming soon.</p>
     <p><a class="btn" href="#inbox">Try it →</a></p>
+    <p style="font-size:13px;opacity:.6;">Web, iPhone, and Mac.</p>
   </div>
 </section>
 
@@ -132,7 +152,7 @@
 <div class="wrap" id="app" style="padding-top:0">
   <div class="panel" id="inbox" style="min-height:0;">
     <h3 style="margin:0 0 12px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Your inbox</h3>
-    <div id="inboxBody" style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;"></div>
+    <div id="inboxBody" style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;text-align:left;"></div>
   </div>
 
   <div class="panel" id="history" style="min-height:0;">
@@ -232,12 +252,12 @@
   const native = params.get('native');
   function connectPicker() {
     body.innerHTML = `
-      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
         <a class="btn" href="${native ? 'siftboxnative://connect/gmail' : '/auth/start'}">Connect Gmail →</a>
-        <a class="btn" href="${native ? 'siftboxnative://connect/outlook' : '/auth/start/outlook'}">Connect Outlook →</a>
+        <button class="btn" disabled title="Coming soon" style="opacity:.4;cursor:not-allowed;">Connect Outlook (soon)</button>
         <button class="btn" id="icloudBtn" style="cursor:pointer;">Connect iCloud →</button>
       </div>
-      <form id="icloudForm" style="display:none;margin-top:12px;max-width:320px;">
+      <form id="icloudForm" style="display:none;margin:12px auto 0;max-width:320px;text-align:left;">
         <p style="font-size:13px;color:var(--muted);margin:0 0 8px;">iCloud has no sign-in flow like Gmail. Use an <a href="https://support.apple.com/en-us/102654" target="_blank" rel="noopener">app-specific password</a>, not your Apple ID password.</p>
         <input name="email" type="email" placeholder="you@icloud.com" required style="width:100%;padding:10px;margin-bottom:8px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-size:14px;">
         <input name="appPassword" type="password" placeholder="app-specific password" required style="width:100%;padding:10px;margin-bottom:8px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-size:14px;">
