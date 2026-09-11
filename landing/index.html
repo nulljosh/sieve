@@ -8,8 +8,14 @@
 <link rel="icon" href="icon.svg">
 <style>
   :root{
-    --bg:#0b0b0c; --panel:#131315; --border:#242427;
-    --text:#f2f2f0; --muted:#9a9a97; --accent:#d93f0b;
+    --bg:#fafafa; --panel:#ffffff; --border:#e4e4e2;
+    --text:#111; --muted:#666; --accent:#FF4136;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0b0b0c; --panel:#131315; --border:#242427;
+      --text:#f2f2f0; --muted:#9a9a97; --accent:#FF4136;
+    }
   }
   *{box-sizing:border-box}
   body{
@@ -25,27 +31,41 @@
   p{font-size:17px; line-height:1.6; color:var(--muted); margin:0 0 16px; max-width:56ch;}
   .lede{color:var(--text);}
   .panel{
-    background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    background:var(--panel); border:1px solid var(--border);
     padding:22px 24px; margin:32px 0; font-size:15px; line-height:1.7;
   }
   .panel .cmd{color:var(--accent); font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
   .panel .out{color:var(--muted); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; white-space:pre-wrap;}
   .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:32px 0;}
   @media (max-width:520px){.grid{grid-template-columns:1fr;}}
-  .card{border:1px solid var(--border); border-radius:12px; padding:18px 20px;}
+  .card{border:1px solid var(--border); padding:18px 20px;}
   .card h3{font-size:14px; margin:0 0 8px; letter-spacing:.02em; text-transform:uppercase; color:var(--muted);}
   .card p{font-size:14px; margin:0; color:var(--text);}
   a.btn{
     display:inline-flex; align-items:center; gap:8px; margin-top:8px;
     color:var(--text); text-decoration:none; border:1px solid var(--border);
-    padding:10px 18px; border-radius:10px; font-size:14px;
+    padding:10px 18px; font-size:14px;
   }
-  a.btn:hover{border-color:var(--accent);}
+  a.btn:hover{border-color:var(--accent); color:var(--accent);}
   footer{margin-top:56px; color:var(--muted); font-size:13px; border-top:1px solid var(--border); padding-top:20px;}
   footer a{color:var(--muted);}
+
+  #bg{position:fixed; inset:0; z-index:0; pointer-events:none;}
+  .wrap{position:relative; z-index:1;}
+
+  .panel{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; min-height:172px;}
+  .panel .cmd::before{content:"❯ "; color:var(--muted);}
+  .panel .cmd{color:var(--accent); font-size:14px;}
+  .panel .out{color:var(--muted); font-size:13px; white-space:pre-wrap; margin-top:10px; min-height:96px;}
+  .caret{display:inline-block; width:7px; height:14px; background:var(--accent); vertical-align:-2px; animation:blink 1s step-end infinite;}
+  @keyframes blink{50%{opacity:0;}}
+  @media (prefers-reduced-motion: reduce){
+    .caret{animation:none;}
+  }
 </style>
 </head>
 <body>
+<canvas id="bg"></canvas>
 <div class="wrap">
   <div class="brand"><img src="icon.svg" alt=""><span>sieve</span></div>
 
@@ -54,10 +74,8 @@
   <p>A Claude Code skill, not another inbox app. Dry run first, always. Nothing gets touched until you say go.</p>
 
   <div class="panel">
-    <div class="cmd">/mail</div>
-    <div class="out">3 dev-tool alerts, 1 already resolved (skipped)
-1 App Store rejection → filed to litigate/roadmap.md
-9 junk, scored 2+ signals each — dry run, nothing touched yet</div>
+    <div class="cmd" id="demoCmd"></div>
+    <div class="out" id="demoOut"></div>
   </div>
 
   <div class="grid">
@@ -79,11 +97,139 @@
     </div>
   </div>
 
+  <div class="panel" id="history" style="min-height:0;">
+    <h3 style="margin:0 0 12px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Run history</h3>
+    <div id="historyList" class="out" style="min-height:0;">loading…</div>
+  </div>
+
   <a class="btn" href="https://github.com/nulljosh/sieve">Source on GitHub →</a>
 
   <footer>
     MIT licensed. Built by <a href="https://heyitsmejosh.com">Joshua Trommel</a>.
   </footer>
 </div>
+
+<script>
+// run history, fetched from the worker's KV-backed log
+(function(){
+  const el = document.getElementById('historyList');
+  fetch('/api/runs').then(r => r.json()).then(runs => {
+    if(!runs.length){ el.textContent = "No runs logged yet — /mail apply reports here."; return; }
+    el.innerHTML = runs.slice(0, 10).map(r => {
+      const d = new Date(r.at);
+      const when = d.toLocaleDateString(undefined, {month:'short', day:'numeric'}) + ' ' + d.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
+      return `${when} — ${r.mode} — ${r.filed} filed, ${r.fixed} fixed, ${r.unsubscribed} unsubscribed, ${r.archived} archived`;
+    }).join('\n');
+  }).catch(() => { el.textContent = "Couldn't load run history."; });
+})();
+
+// clrs.cc palette, minus teal/purple per house rule
+const PALETTE = ["#FF4136","#FF851B","#FFDC00","#2ECC40","#7FDBFF","#0074D9","#FF80CC","#01FF70"];
+
+// floating envelope background
+(function(){
+  const canvas = document.getElementById('bg');
+  const ctx = canvas.getContext('2d');
+  let w, h, dpr;
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = canvas.width = innerWidth * dpr;
+    h = canvas.height = innerHeight * dpr;
+    canvas.style.width = innerWidth + "px";
+    canvas.style.height = innerHeight + "px";
+  }
+  resize();
+  addEventListener('resize', resize);
+
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const count = Math.min(28, Math.floor((innerWidth * innerHeight) / 45000));
+  const envelopes = Array.from({length: count}, () => spawn());
+
+  function spawn(fromBottom){
+    return {
+      x: Math.random() * innerWidth,
+      y: fromBottom ? innerHeight + 40 : Math.random() * innerHeight,
+      s: 14 + Math.random() * 20,
+      vy: 0.15 + Math.random() * 0.35,
+      drift: (Math.random() - 0.5) * 0.3,
+      rot: (Math.random() - 0.5) * 0.4,
+      vr: (Math.random() - 0.5) * 0.004,
+      color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
+      alpha: 0.10 + Math.random() * 0.16,
+    };
+  }
+
+  function drawEnvelope(e){
+    const s = e.s;
+    ctx.save();
+    ctx.translate(e.x * dpr, e.y * dpr);
+    ctx.rotate(e.rot);
+    ctx.scale(dpr, dpr);
+    ctx.globalAlpha = e.alpha;
+    ctx.strokeStyle = e.color;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.rect(-s, -s * 0.68, s * 2, s * 1.36);
+    ctx.moveTo(-s, -s * 0.68);
+    ctx.lineTo(0, s * 0.12);
+    ctx.lineTo(s, -s * 0.68);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function frame(){
+    ctx.clearRect(0, 0, w, h);
+    for(const e of envelopes){
+      drawEnvelope(e);
+      if(!reduceMotion){
+        e.y -= e.vy;
+        e.x += e.drift;
+        e.rot += e.vr;
+        if(e.y < -40){ Object.assign(e, spawn(true)); }
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+// typed terminal demo
+(function(){
+  const cmdEl = document.getElementById('demoCmd');
+  const outEl = document.getElementById('demoOut');
+  const cmd = "/mail";
+  const out = `3 dev-tool alerts, 1 already resolved (skipped)
+1 App Store rejection → filed to litigate/roadmap.md
+9 junk scored 2+ signals — unsubscribed via RFC 8058, cleared
+dry run complete, nothing else touched`;
+
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  async function type(el, text, speed){
+    if(reduceMotion){ el.textContent = text; return; }
+    for(let i = 0; i <= text.length; i++){
+      el.textContent = text.slice(0, i);
+      await new Promise(r => setTimeout(r, speed));
+    }
+  }
+
+  async function run(){
+    const caret = document.createElement('span');
+    caret.className = 'caret';
+    while(true){
+      cmdEl.textContent = "";
+      outEl.textContent = "";
+      cmdEl.appendChild(caret);
+      await type(cmdEl, cmd, 70);
+      cmdEl.appendChild(caret);
+      await new Promise(r => setTimeout(r, 350));
+      cmdEl.removeChild(caret);
+      await type(outEl, out, 12);
+      await new Promise(r => setTimeout(r, 3200));
+    }
+  }
+  run();
+})();
+</script>
 </body>
 </html>

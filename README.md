@@ -29,6 +29,10 @@ This is a Claude Code skill, invoked from a session, not a hosted service:
 
 Full triage logic, spam scoring, and unsubscribe handling: [SKILL.md](SKILL.md).
 
+## Dashboard
+
+Triage still only runs inside a Claude Code session — that part doesn't change. But every run logs its counts to [sieve.heyitsmejosh.com](https://sieve.heyitsmejosh.com), so there's a real history to check without opening a terminal: web, and native iOS/macOS apps that show the same page.
+
 ## Architecture
 
 <img src="architecture.svg" width="600">

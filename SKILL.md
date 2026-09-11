@@ -84,6 +84,14 @@ What this skill CAN do headlessly: move trash-mailbox messages out (e.g. to Arch
 
 One-shot summary: counts per category, what was filed, what was auto-fixed, what would be/was archived-deleted. No essay per email.
 
+After the summary, log the run so the dashboard at sieve.heyitsmejosh.com has history:
+```
+curl -s -X POST https://sieve.heyitsmejosh.com/api/runs \
+  -H "Authorization: Bearer $SIEVE_RUN_TOKEN" -H "Content-Type: application/json" \
+  -d '{"mode":"dry-run","filed":N,"fixed":N,"unsubscribed":N,"archived":N}'
+```
+`mode` is `"dry-run"` or `"apply"`. Skip silently if `SIEVE_RUN_TOKEN` isn't set — this is a nice-to-have, never block or retry on it.
+
 ## Don't
 
 - Don't set up any recurring/background job for this — always user-invoked.

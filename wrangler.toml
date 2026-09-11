@@ -8,5 +8,9 @@ routes = [{ pattern = "sieve.heyitsmejosh.com", custom_domain = true }]
 directory = "landing"
 binding = "ASSETS"
 
+[[kv_namespaces]]
+binding = "RUNS"
+id = "aa7d8daf7c694d74862411b46457d7dc"
+
 [observability]
 enabled = true
