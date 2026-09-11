@@ -176,9 +176,27 @@
   const token = localStorage.getItem('sieve_token');
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
+  function domainOf(addr) { const m = (addr||'').match(/@([^ >]+)/); return m ? m[1].toLowerCase() : (addr||'unknown'); }
+
+  function renderRollup(messages) {
+    const junk = messages.filter(m => m.isJunk && m.listUnsubscribe);
+    const groups = {};
+    for (const m of junk) (groups[domainOf(m.from)] ||= []).push(m);
+    const senders = Object.entries(groups).filter(([, list]) => list.length > 1).sort((a, b) => b[1].length - a[1].length);
+    if (!senders.length) return '';
+    return `<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Unsubscribe from repeat senders</div>
+      ${senders.map(([domain, list]) => `
+        <div data-rollup="${domain}" style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 0;">
+          <div style="font-size:13px;color:var(--text);">${domain} <span style="color:var(--muted);">(${list.length})</span></div>
+          <button data-rollup-act="${domain}" style="font-size:12px;padding:6px 10px;border:1px solid var(--border);background:none;color:var(--accent);cursor:pointer;">Unsubscribe all</button>
+        </div>`).join('')}
+    </div>`;
+  }
+
   function render(messages) {
     if (!messages.length) { body.innerHTML = '<p style="margin:0;color:var(--muted);font-size:14px;">Inbox is clean. Nothing to triage.</p>'; return; }
-    body.innerHTML = messages.map(m => `
+    body.innerHTML = renderRollup(messages) + messages.map(m => `
       <div data-id="${m.id}" style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
         <div style="min-width:0;">
           <div style="font-size:13px;font-weight:600;${m.isJunk ? 'color:var(--accent);' : ''}">${(m.from||'').replace(/</g,'&lt;')}</div>
@@ -199,6 +217,15 @@
       await fetch('/api/action', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, credentials: 'include',
         body: JSON.stringify({ messageId: id, action: btn.dataset.act, listUnsubscribe: msg.listUnsubscribe, oneClick: msg.oneClick }) });
       row.style.opacity = '0.35'; row.style.pointerEvents = 'none';
+    }));
+    body.querySelectorAll('[data-rollup-act]').forEach(btn => btn.addEventListener('click', async () => {
+      const domain = btn.dataset.rollupAct;
+      const group = messages.filter(m => m.isJunk && m.listUnsubscribe && domainOf(m.from) === domain);
+      btn.disabled = true; btn.textContent = '…';
+      await Promise.all(group.map(m => fetch('/api/action', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, credentials: 'include',
+        body: JSON.stringify({ messageId: m.id, action: 'unsubscribe', listUnsubscribe: m.listUnsubscribe, oneClick: m.oneClick }) })));
+      btn.closest('[data-rollup]').style.opacity = '0.35';
+      for (const m of group) { const row = body.querySelector(`[data-id="${m.id}"]`); if (row) { row.style.opacity = '0.35'; row.style.pointerEvents = 'none'; } }
     }));
   }
 
