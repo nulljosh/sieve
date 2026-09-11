@@ -10,17 +10,17 @@ That's the gap.
 
 ## What it does
 
-A Claude Code skill, not a server. Point it at your inbox and it reads every account headlessly — no UI, no screenshots — and puts each message in one of two piles.
+Sign in with Google and sieve reads your actual inbox over the Gmail API — web, iOS, or macOS. Junk gets scored — sender/domain mismatch, urgency language, an unsubscribe header nobody asked for — and cleared with one tap: a real `List-Unsubscribe` one-click POST where the sender supports it, archive or delete otherwise. Nothing is touched until you tap it.
 
-Real alerts (App Store Connect, Vercel, Sentry, a failed GitHub Action) get the project matched, the actual error pulled from the log, and either fixed on the spot or filed to that project's roadmap. Junk gets scored — sender/domain mismatch, urgency language, obfuscated links, an unsubscribe header nobody asked for — and cleared: a real `List-Unsubscribe` one-click POST where the sender supports it (most do), archive or delete otherwise. Dry run first, always. Nothing gets touched until you say go.
+The Claude Code side (`/mail`) still exists for the dev-tool-alert half of the job — matching an App Store Connect or GitHub Actions email to the right project and fixing or filing it — since that needs a coding agent, not a mail client. The two share the same spam-scoring rules.
 
 ## Why this and not a filter rule
 
-A filter rule is static — it catches what you already know to catch. This reads the actual message, decides what kind of thing it is, and takes the next real step: file a bug, fix a build, or unsubscribe and move on. The difference between a spam folder and someone who actually reads your mail.
+A filter rule is static — it catches what you already know to catch. This reads the actual message, decides what kind of thing it is, and takes the next real step: unsubscribe and move on, or (via `/mail`) file a bug or fix a build. The difference between a spam folder and someone who actually reads your mail.
 
 ## Run it
 
-This is a Claude Code skill, invoked from a session, not a hosted service:
+Open [sieve.heyitsmejosh.com](https://sieve.heyitsmejosh.com) (or the iOS/macOS app), connect Gmail, triage. For the dev-tool-alert side, from a Claude Code session:
 
 ```
 /mail                 dry run — read, classify, report, touch nothing
@@ -28,10 +28,6 @@ This is a Claude Code skill, invoked from a session, not a hosted service:
 ```
 
 Full triage logic, spam scoring, and unsubscribe handling: [SKILL.md](SKILL.md).
-
-## Dashboard
-
-Triage still only runs inside a Claude Code session — that part doesn't change. But every run logs its counts to [sieve.heyitsmejosh.com](https://sieve.heyitsmejosh.com), so there's a real history to check without opening a terminal: web, and native iOS/macOS apps that show the same page.
 
 ## Architecture
 

@@ -12,5 +12,9 @@ binding = "ASSETS"
 binding = "RUNS"
 id = "aa7d8daf7c694d74862411b46457d7dc"
 
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "6828f2b06f6844f08c9f242af04704ff"
+
 [observability]
 enabled = true

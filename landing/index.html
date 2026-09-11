@@ -87,7 +87,7 @@
   <div class="brand"><img src="icon.svg" alt=""><span>sieve</span></div>
 
   <h1>Your inbox already knows<br>what's junk.</h1>
-  <p class="lede">sieve reads every account headlessly, sorts real alerts from noise, and closes the loop on both. No screenshots, no manual unsubscribe clicking.</p>
+  <p class="lede">Connect Gmail and sieve reads your inbox, scores the junk, and clears it in one tap — real unsubscribe, not a filter rule. No screenshots, no manual clicking.</p>
 <div class="demo">
   <div class="device device-iphone" id="demoFrame" data-title="Sieve"><div class="device-screen"><iframe id="demoApp" title="Sieve, live" loading="lazy" data-src="./?frame=1"></iframe></div></div>
   <p class="demo-caption">This is the <span id="demoDev">iPhone</span> app, live. Try it.</p>
@@ -99,7 +99,7 @@ if(!document.documentElement.classList.contains('demoframe'))i.src=i.dataset.src
 function fit(){i.style.transform='scale('+(i.parentNode.clientWidth/i.offsetWidth)+')';}fit();addEventListener('resize',fit);})();
 </script>
 
-  <p>A Claude Code skill, not another inbox app. Dry run first, always. Nothing gets touched until you say go.</p>
+  <p>A real inbox app — web, iOS, macOS — plus a Claude Code skill for the dev-tool-alert half of the job. Nothing gets touched until you tap it.</p>
 
   <div class="panel">
     <div class="cmd" id="demoCmd"></div>
@@ -125,6 +125,11 @@ function fit(){i.style.transform='scale('+(i.parentNode.clientWidth/i.offsetWidt
     </div>
   </div>
 
+  <div class="panel" id="inbox" style="min-height:0;">
+    <h3 style="margin:0 0 12px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Your inbox</h3>
+    <div id="inboxBody" style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;"></div>
+  </div>
+
   <div class="panel" id="history" style="min-height:0;">
     <h3 style="margin:0 0 12px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Run history</h3>
     <div id="historyList" class="out" style="min-height:0;">loading…</div>
@@ -138,6 +143,49 @@ function fit(){i.style.transform='scale('+(i.parentNode.clientWidth/i.offsetWidt
 </div>
 
 <script>
+// inbox: real Gmail triage, gated on a connected session (cookie for web, ?token= for native).
+(function(){
+  const body = document.getElementById('inboxBody');
+  const params = new URLSearchParams(location.search);
+  const nativeToken = params.get('token');
+  if (nativeToken) { localStorage.setItem('sieve_token', nativeToken); history.replaceState(null, '', location.pathname); }
+  const token = localStorage.getItem('sieve_token');
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+  function render(messages) {
+    if (!messages.length) { body.innerHTML = '<p style="margin:0;color:var(--muted);font-size:14px;">Inbox is clean. Nothing to triage.</p>'; return; }
+    body.innerHTML = messages.map(m => `
+      <div data-id="${m.id}" style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
+        <div style="min-width:0;">
+          <div style="font-size:13px;font-weight:600;${m.isJunk ? 'color:var(--accent);' : ''}">${(m.from||'').replace(/</g,'&lt;')}</div>
+          <div style="font-size:13px;color:var(--text);">${(m.subject||'(no subject)').replace(/</g,'&lt;')}</div>
+          <div style="font-size:12px;color:var(--muted);">${m.isJunk ? `junk, ${m.score} signals: ${m.reasons.join(', ')}` : 'looks legit'}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;align-self:center;">
+          ${m.isJunk ? `<button data-act="unsubscribe" style="font-size:12px;padding:6px 10px;border:1px solid var(--border);background:none;color:var(--text);cursor:pointer;">Unsubscribe</button>` : ''}
+          <button data-act="archive" style="font-size:12px;padding:6px 10px;border:1px solid var(--border);background:none;color:var(--text);cursor:pointer;">Archive</button>
+          <button data-act="delete" style="font-size:12px;padding:6px 10px;border:1px solid var(--border);background:none;color:var(--accent);cursor:pointer;">Delete</button>
+        </div>
+      </div>`).join('');
+    body.querySelectorAll('button').forEach(btn => btn.addEventListener('click', async () => {
+      const row = btn.closest('[data-id]');
+      const id = row.dataset.id;
+      const msg = messages.find(m => m.id === id);
+      btn.disabled = true; btn.textContent = '…';
+      await fetch('/api/action', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders }, credentials: 'include',
+        body: JSON.stringify({ messageId: id, action: btn.dataset.act, listUnsubscribe: msg.listUnsubscribe, oneClick: msg.oneClick }) });
+      row.style.opacity = '0.35'; row.style.pointerEvents = 'none';
+    }));
+  }
+
+  const connectHref = params.get('native') ? 'sievenative://connect' : '/auth/start';
+  fetch('/api/messages', { headers: authHeaders, credentials: 'include' }).then(r => {
+    if (r.status === 401) { body.innerHTML = `<a class="btn" href="${connectHref}">Connect Gmail →</a>`; return; }
+    if (!r.ok) { body.innerHTML = '<p style="margin:0;color:var(--muted);font-size:14px;">Could not load inbox.</p>'; return; }
+    return r.json().then(render);
+  });
+})();
+
 // run history, fetched from the worker's KV-backed log
 (function(){
   const el = document.getElementById('historyList');
