@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>sieve — inbox triage for Claude Code</title>
+<title>sieve: inbox triage for Claude Code</title>
 <meta name="description" content="A Claude Code skill that reads your inbox headlessly, files real alerts, scores and clears the junk.">
 <link rel="icon" href="icon.svg">
 <style>
@@ -70,7 +70,7 @@
   <div class="brand"><img src="icon.svg" alt=""><span>sieve</span></div>
 
   <h1>Your inbox already knows<br>what's junk.</h1>
-  <p class="lede">sieve reads every account headlessly, sorts real alerts from noise, and closes the loop on both — no screenshots, no manual unsubscribe clicking.</p>
+  <p class="lede">sieve reads every account headlessly, sorts real alerts from noise, and closes the loop on both. No screenshots, no manual unsubscribe clicking.</p>
   <p>A Claude Code skill, not another inbox app. Dry run first, always. Nothing gets touched until you say go.</p>
 
   <div class="panel">
@@ -81,7 +81,7 @@
   <div class="grid">
     <div class="card">
       <h3>Real alerts</h3>
-      <p>App Store Connect, Vercel, Sentry, GitHub Actions — matched to the project, checked against its roadmap and memory, fixed on the spot or filed.</p>
+      <p>App Store Connect, Vercel, Sentry, GitHub Actions, matched to the project, checked against its roadmap and memory, fixed on the spot or filed.</p>
     </div>
     <div class="card">
       <h3>Spam scoring</h3>
@@ -89,7 +89,7 @@
     </div>
     <div class="card">
       <h3>One-click unsubscribe</h3>
-      <p>POSTs straight to the sender's RFC 8058 endpoint where supported — no browser, no click-through, no confirmation page.</p>
+      <p>POSTs straight to the sender's RFC 8058 endpoint where supported. No browser, no click-through, no confirmation page.</p>
     </div>
     <div class="card">
       <h3>Dry run by default</h3>
@@ -114,11 +114,11 @@
 (function(){
   const el = document.getElementById('historyList');
   fetch('/api/runs').then(r => r.json()).then(runs => {
-    if(!runs.length){ el.textContent = "No runs logged yet — /mail apply reports here."; return; }
+    if(!runs.length){ el.textContent = "No runs logged yet. /mail apply reports here."; return; }
     el.innerHTML = runs.slice(0, 10).map(r => {
       const d = new Date(r.at);
       const when = d.toLocaleDateString(undefined, {month:'short', day:'numeric'}) + ' ' + d.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
-      return `${when} — ${r.mode} — ${r.filed} filed, ${r.fixed} fixed, ${r.unsubscribed} unsubscribed, ${r.archived} archived`;
+      return `${when}, ${r.mode}: ${r.filed} filed, ${r.fixed} fixed, ${r.unsubscribed} unsubscribed, ${r.archived} archived`;
     }).join('\n');
   }).catch(() => { el.textContent = "Couldn't load run history."; });
 })();
@@ -200,7 +200,7 @@ const PALETTE = ["#FF4136","#FF851B","#FFDC00","#2ECC40","#7FDBFF","#0074D9","#F
   const cmd = "/mail";
   const out = `3 dev-tool alerts, 1 already resolved (skipped)
 1 App Store rejection → filed to litigate/roadmap.md
-9 junk scored 2+ signals — unsubscribed via RFC 8058, cleared
+9 junk scored 2+ signals, unsubscribed via RFC 8058, cleared
 dry run complete, nothing else touched`;
 
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
