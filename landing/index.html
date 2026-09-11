@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>sieve: inbox triage for Claude Code</title>
-<meta name="description" content="A Claude Code skill that reads your inbox headlessly, files real alerts, scores and clears the junk.">
+<title>Siftbox: inbox triage app</title>
+<meta name="description" content="Connect Gmail and Siftbox reads your inbox, scores the junk, and clears it in one tap.">
 <link rel="icon" href="icon.svg">
 <style>
   :root{
@@ -34,8 +34,6 @@
     background:var(--panel); border:1px solid var(--border);
     padding:22px 24px; margin:32px 0; font-size:15px; line-height:1.7;
   }
-  .panel .cmd{color:var(--accent); font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
-  .panel .out{color:var(--muted); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; white-space:pre-wrap;}
   .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:32px 0;}
   @media (max-width:520px){.grid{grid-template-columns:1fr;}}
   .card{border:1px solid var(--border); padding:18px 20px;}
@@ -49,19 +47,6 @@
   a.btn:hover{border-color:var(--accent); color:var(--accent);}
   footer{margin-top:56px; color:var(--muted); font-size:13px; border-top:1px solid var(--border); padding-top:20px;}
   footer a{color:var(--muted);}
-
-  #bg{position:fixed; inset:0; z-index:0; pointer-events:none;}
-  .wrap{position:relative; z-index:1;}
-
-  .panel{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; min-height:172px;}
-  .panel .cmd::before{content:"❯ "; color:var(--muted);}
-  .panel .cmd{color:var(--accent); font-size:14px;}
-  .panel .out{color:var(--muted); font-size:13px; white-space:pre-wrap; margin-top:10px; min-height:96px;}
-  .caret{display:inline-block; width:7px; height:14px; background:var(--accent); vertical-align:-2px; animation:blink 1s step-end infinite;}
-  @keyframes blink{50%{opacity:0;}}
-  @media (prefers-reduced-motion: reduce){
-    .caret{animation:none;}
-  }
 </style>
 <link rel="stylesheet" href="devices.css">
 <script>
@@ -87,14 +72,13 @@
 </style>
 </head>
 <body>
-<canvas id="bg"></canvas>
 <div class="wrap">
-  <div class="brand"><img src="icon.svg" alt=""><span>sieve</span></div>
+  <div class="brand"><img src="icon.svg" alt=""><span>Siftbox</span></div>
 
   <h1>Your inbox already knows<br>what's junk.</h1>
-  <p class="lede">Connect Gmail and sieve reads your inbox, scores the junk, and clears it in one tap — real unsubscribe, not a filter rule. No screenshots, no manual clicking.</p>
+  <p class="lede">Connect Gmail and Siftbox reads your inbox, scores the junk, and clears it in one tap — real unsubscribe, not a filter rule. No screenshots, no manual clicking.</p>
 <div class="demo">
-  <div class="device device-iphone" id="demoFrame" data-title="Sieve"><div class="device-screen"><iframe id="demoApp" title="Sieve, live" loading="lazy" data-src="./?frame=1"></iframe></div></div>
+  <div class="device device-iphone" id="demoFrame" data-title="Siftbox"><div class="device-screen"><iframe id="demoApp" title="Siftbox, live" loading="lazy" data-src="./?frame=1"></iframe></div></div>
   <p class="demo-caption">This is the <span id="demoDev">iPhone</span> app, live. Try it. Also on macOS and web.</p>
 </div>
 <script>
@@ -105,11 +89,6 @@ function fit(){i.style.transform='scale('+(i.parentNode.clientWidth/i.offsetWidt
 </script>
 
   <p class="subhead">A real inbox app — web, iOS, macOS — plus a Claude Code skill for the dev-tool-alert half of the job. Nothing gets touched until you tap it.</p>
-
-  <div class="panel">
-    <div class="cmd" id="demoCmd"></div>
-    <div class="out" id="demoOut"></div>
-  </div>
 
   <div class="grid">
     <div class="card">
@@ -140,7 +119,7 @@ function fit(){i.style.transform='scale('+(i.parentNode.clientWidth/i.offsetWidt
     <div id="historyList" class="out" style="min-height:0;">loading…</div>
   </div>
 
-  <a class="btn ghlink" href="https://github.com/nulljosh/sieve">Source on GitHub →</a>
+  <a class="btn ghlink" href="https://github.com/nulljosh/siftbox">Source on GitHub →</a>
 
   <footer>
     MIT licensed. Built by <a href="https://heyitsmejosh.com">Joshua Trommel</a>.
@@ -183,7 +162,7 @@ function fit(){i.style.transform='scale('+(i.parentNode.clientWidth/i.offsetWidt
     }));
   }
 
-  const connectHref = params.get('native') ? 'sievenative://connect' : '/auth/start';
+  const connectHref = params.get('native') ? 'siftboxnative://connect' : '/auth/start';
   fetch('/api/messages', { headers: authHeaders, credentials: 'include' }).then(r => {
     if (r.status === 401) { body.innerHTML = `<a class="btn" href="${connectHref}">Connect Gmail →</a>`; return; }
     if (!r.ok) { body.innerHTML = '<p style="margin:0;color:var(--muted);font-size:14px;">Could not load inbox.</p>'; return; }
@@ -204,114 +183,6 @@ function fit(){i.style.transform='scale('+(i.parentNode.clientWidth/i.offsetWidt
   }).catch(() => { el.textContent = "Couldn't load run history."; });
 })();
 
-// clrs.cc palette, minus teal/purple per house rule
-const PALETTE = ["#FF4136","#FF851B","#FFDC00","#2ECC40","#7FDBFF","#0074D9","#FF80CC","#01FF70"];
-
-// floating envelope background
-(function(){
-  const canvas = document.getElementById('bg');
-  const ctx = canvas.getContext('2d');
-  let w, h, dpr;
-  function resize(){
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    w = canvas.width = innerWidth * dpr;
-    h = canvas.height = innerHeight * dpr;
-    canvas.style.width = innerWidth + "px";
-    canvas.style.height = innerHeight + "px";
-  }
-  resize();
-  addEventListener('resize', resize);
-
-  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const count = Math.min(28, Math.floor((innerWidth * innerHeight) / 45000));
-  const envelopes = Array.from({length: count}, () => spawn());
-
-  function spawn(fromBottom){
-    return {
-      x: Math.random() * innerWidth,
-      y: fromBottom ? innerHeight + 40 : Math.random() * innerHeight,
-      s: 14 + Math.random() * 20,
-      vy: 0.15 + Math.random() * 0.35,
-      drift: (Math.random() - 0.5) * 0.3,
-      rot: (Math.random() - 0.5) * 0.4,
-      vr: (Math.random() - 0.5) * 0.004,
-      color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
-      alpha: 0.10 + Math.random() * 0.16,
-    };
-  }
-
-  function drawEnvelope(e){
-    const s = e.s;
-    ctx.save();
-    ctx.translate(e.x * dpr, e.y * dpr);
-    ctx.rotate(e.rot);
-    ctx.scale(dpr, dpr);
-    ctx.globalAlpha = e.alpha;
-    ctx.strokeStyle = e.color;
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.rect(-s, -s * 0.68, s * 2, s * 1.36);
-    ctx.moveTo(-s, -s * 0.68);
-    ctx.lineTo(0, s * 0.12);
-    ctx.lineTo(s, -s * 0.68);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  function frame(){
-    ctx.clearRect(0, 0, w, h);
-    for(const e of envelopes){
-      drawEnvelope(e);
-      if(!reduceMotion){
-        e.y -= e.vy;
-        e.x += e.drift;
-        e.rot += e.vr;
-        if(e.y < -40){ Object.assign(e, spawn(true)); }
-      }
-    }
-    requestAnimationFrame(frame);
-  }
-  frame();
-})();
-
-// typed terminal demo
-(function(){
-  const cmdEl = document.getElementById('demoCmd');
-  const outEl = document.getElementById('demoOut');
-  const cmd = "/mail";
-  const out = `3 dev-tool alerts, 1 already resolved (skipped)
-1 App Store rejection → filed to litigate/roadmap.md
-9 junk scored 2+ signals, unsubscribed via RFC 8058, cleared
-dry run complete, nothing else touched`;
-
-  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  async function type(el, text, speed){
-    if(reduceMotion){ el.textContent = text; return; }
-    for(let i = 0; i <= text.length; i++){
-      el.textContent = text.slice(0, i);
-      await new Promise(r => setTimeout(r, speed));
-    }
-  }
-
-  async function run(){
-    const caret = document.createElement('span');
-    caret.className = 'caret';
-    await new Promise(r => setTimeout(r, 600 + Math.random() * 1400)); // stagger vs. the envelope background so both loops don't feel synced
-    while(true){
-      cmdEl.textContent = "";
-      outEl.textContent = "";
-      cmdEl.appendChild(caret);
-      await type(cmdEl, cmd, 70);
-      cmdEl.appendChild(caret);
-      await new Promise(r => setTimeout(r, 350));
-      cmdEl.removeChild(caret);
-      await type(outEl, out, 12);
-      await new Promise(r => setTimeout(r, 3200));
-    }
-  }
-  run();
-})();
 </script>
 </body>
 </html>

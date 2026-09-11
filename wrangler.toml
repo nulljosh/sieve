@@ -2,7 +2,10 @@ name = "sieve"
 main = "worker.js"
 compatibility_date = "2026-09-01"
 workers_dev = true
-routes = [{ pattern = "sieve.heyitsmejosh.com", custom_domain = true }]
+routes = [
+  { pattern = "siftbox.heyitsmejosh.com", custom_domain = true },
+  { pattern = "sieve.heyitsmejosh.com", custom_domain = true },
+]
 
 [assets]
 directory = "landing"

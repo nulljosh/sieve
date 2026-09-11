@@ -5,7 +5,7 @@ const GOOGLE_AUTH = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN = "https://oauth2.googleapis.com/token";
 const GMAIL = "https://gmail.googleapis.com/gmail/v1/users/me";
 const SCOPE = "https://www.googleapis.com/auth/gmail.modify";
-const WEB_REDIRECT = "https://sieve.heyitsmejosh.com/auth/callback";
+const WEB_REDIRECT = "https://siftbox.heyitsmejosh.com/auth/callback";
 
 // ponytail: JSON blob in KV per session id, no schema migrations needed for a single-user-per-row store.
 async function getSession(env, id) {

@@ -1,56 +1,53 @@
-# sieve Technical Whitepaper
+# Siftbox Technical Whitepaper
 
-**v1.0.0** | September 2026
+**v2.0.0** | September 2026
 
-An inbox fills up the same way every day: real alerts mixed in with junk that
-outnumbers them ten to one. sieve reads it headlessly, sorts it into two
-piles, and closes the loop on both — file or fix the real ones, unsubscribe
-and clear the junk.
+An inbox fills up the same way every day: real mail mixed in with junk that
+outnumbers it ten to one. Siftbox connects to Gmail directly — web, iOS,
+macOS — reads the inbox, scores each message, and clears the junk in one tap.
 
 ## What it does
 
-sieve is a Claude Code skill (`/mail`), not a hosted service. It reads every
-enabled Mail.app account via AppleScript, or Gmail through its MCP tools, and
-classifies each message.
-
-**Dev-tool alerts** (App Store Connect, Vercel, Sentry, GitHub Actions) get
-matched to a project directory, checked against that project's `roadmap.md`
-and memory for staleness, and — where the root cause is a small fix or a
-project skill already owns it — handled directly. Otherwise filed as a dated
-`roadmap.md` entry.
-
-**Junk** gets scored before it's touched, not just pattern-matched on
-subject line: sender/display-name domain mismatch, generic bulk greeting
-plus a call to action, urgency language, tracking-pixel-only bodies, an
-unsubscribe header from a sender nobody recognizes, mismatched or obfuscated
-links. Two or more signals confirms junk; a real person or a service the
-user has an account with is never bucketed here regardless of tone.
+Sign-in with Google grants read/modify access to Gmail (OAuth, scoped to
+`gmail.modify`). A Cloudflare Worker backend lists the inbox over the Gmail
+API and scores each message before anything is touched: sender/display-name
+domain mismatch, generic bulk greeting plus a call to action, urgency
+language, an unsubscribe header from a sender nobody recognizes, a reply-to
+domain that doesn't match the sender. Two or more signals confirms junk; a
+real person or a service the user has an account with is never scored here
+regardless of tone.
 
 ## Unsubscribing
 
 Most bulk senders already support RFC 8058 one-click unsubscribe —
 `List-Unsubscribe-Post: List-Unsubscribe=One-Click` alongside a
-`List-Unsubscribe` URL. sieve POSTs to it directly; a 2xx/204 confirms it, no
-browser required. Only messages with an in-body link and no header fall back
-to driving Chrome, and anything with a mismatched href is left alone
-entirely — clicking a phishing unsubscribe link just confirms the address is
-live.
+`List-Unsubscribe` URL. Siftbox POSTs to it directly; a 2xx/204 confirms it,
+no browser required. The message is archived either way once you act on it —
+archive, delete, or unsubscribe are each one tap, nothing happens on its own.
+
+## Cross-platform auth
+
+Google blocks OAuth consent screens from loading inside an embedded WebView.
+The web app runs a normal confidential-client OAuth flow. The iOS/macOS
+wrapper instead intercepts the "Connect Gmail" action, opens the system
+browser via `ASWebAuthenticationSession` against a second, public PKCE OAuth
+client, exchanges the code directly with Google, and hands the resulting
+tokens to the same backend — one shared UI, one shared API, two login paths.
+
+## Where the old skill fits
+
+The original Claude Code skill (`/mail`) still exists for the half of the
+job that needs a coding agent, not a mail client: matching an App Store
+Connect or GitHub Actions alert to the right project, pulling the real
+failure log, and fixing or filing it. Siftbox and `/mail` share the same
+spam-scoring rules but run independently.
 
 ## Design
 
-- **Dry run is the default.** Every run reads and classifies before it ever
-  deletes or archives; the real pass is a separate, explicit step.
-- **No background automation.** User-invoked only — this machine runs no
-  crontab or watchdog for anything, mail included.
-- **Root cause over symptom.** A CI or build-failure alert gets its actual
-  log pulled before filing; a fixable one gets fixed and pushed, not just
-  logged.
-
-## Where it goes
-
-Gmail coverage today is MCP-only, no IMAP fallback. Next: a light spam-score
-memory, so a sender that scored borderline once doesn't need re-judging
-every run.
+- **Nothing moves until you tap it.** Reading and scoring never mutates
+  anything; archive/delete/unsubscribe are each an explicit action.
+- **No background automation.** No cron, no polling — every read is
+  triggered by opening the app.
 
 ## License
 

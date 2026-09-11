@@ -1,10 +1,10 @@
-# Contributing to sieve
+# Contributing to Siftbox
 
 ## Setup
 
 ```
-git clone https://github.com/nulljosh/sieve.git
-cd sieve
+git clone https://github.com/nulljosh/siftbox.git
+cd siftbox
 npm install
 ```
 

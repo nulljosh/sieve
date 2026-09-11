@@ -84,9 +84,9 @@ What this skill CAN do headlessly: move trash-mailbox messages out (e.g. to Arch
 
 One-shot summary: counts per category, what was filed, what was auto-fixed, what would be/was archived-deleted. No essay per email.
 
-After the summary, log the run so the dashboard at sieve.heyitsmejosh.com has history:
+After the summary, log the run so the dashboard at siftbox.heyitsmejosh.com has history:
 ```
-curl -s -X POST https://sieve.heyitsmejosh.com/api/runs \
+curl -s -X POST https://siftbox.heyitsmejosh.com/api/runs \
   -H "Authorization: Bearer $SIEVE_RUN_TOKEN" -H "Content-Type: application/json" \
   -d '{"mode":"dry-run","filed":N,"fixed":N,"unsubscribed":N,"archived":N}'
 ```

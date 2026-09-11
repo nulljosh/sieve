@@ -4,7 +4,7 @@ import AuthenticationServices
 import CryptoKit
 
 @main
-struct SieveApp: App {
+struct SiftboxApp: App {
     var body: some Scene {
         WindowGroup { ContentView() }
         #if os(macOS)
@@ -13,7 +13,7 @@ struct SieveApp: App {
     }
 }
 
-let sieveBase = "https://sieve.heyitsmejosh.com/?embed&native=1"
+let sieveBase = "https://siftbox.heyitsmejosh.com/?embed&native=1"
 // iOS OAuth client (public, no secret — PKCE only). Same jaybulb-signin GCP project as the web client.
 let iosClientID = "337798947774-m4fkg9dprksbbu8rbhei08cm1riuajti.apps.googleusercontent.com"
 let iosRedirectScheme = "com.googleusercontent.apps.337798947774-m4fkg9dprksbbu8rbhei08cm1riuajti"
@@ -76,7 +76,7 @@ final class GoogleAuth: NSObject, ASWebAuthenticationPresentationContextProvidin
         guard let (data, _) = try? await URLSession.shared.data(for: req),
               let tok = try? JSONDecoder().decode(GoogleToken.self, from: data) else { return nil }
 
-        var native = URLRequest(url: URL(string: "https://sieve.heyitsmejosh.com/auth/native")!)
+        var native = URLRequest(url: URL(string: "https://siftbox.heyitsmejosh.com/auth/native")!)
         native.httpMethod = "POST"
         native.setValue("application/json", forHTTPHeaderField: "Content-Type")
         native.httpBody = try? JSONEncoder().encode(NativeAuth(access_token: tok.access_token, refresh_token: tok.refresh_token, expires_in: tok.expires_in, client_id: iosClientID))
@@ -103,7 +103,7 @@ final class LoadState: NSObject, ObservableObject, WKNavigationDelegate {
     func webView(_ w: WKWebView, didFailProvisionalNavigation n: WKNavigation!, withError e: Error) { loading = false; failed = true }
 
     func webView(_ w: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        guard navigationAction.request.url?.scheme == "sievenative" else { decisionHandler(.allow); return }
+        guard navigationAction.request.url?.scheme == "siftboxnative" else { decisionHandler(.allow); return }
         decisionHandler(.cancel)
         GoogleAuth.shared.connect { [weak self] url in
             guard let url else { return }
