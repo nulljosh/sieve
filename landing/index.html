@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Siftbox: inbox triage app</title>
-<meta name="description" content="Connect Gmail and Siftbox reads your inbox, scores the junk, and clears it in one tap.">
+<meta name="description" content="Connect Gmail, Outlook, or iCloud and Siftbox reads your inbox, scores the junk, and clears it in one tap.">
 <link rel="icon" href="icon.svg">
 <style>
   :root{
@@ -62,8 +62,7 @@
 <body>
 <header class="bar">
   <img src="icon.svg" alt=""><strong>Siftbox</strong>
-  <span>Reads your Gmail, scores the junk, unsubscribes for real.</span>
-  <a class="btn" href="/auth/start" id="ctaOpen">Connect Gmail</a>
+  <span>Reads your Gmail, Outlook, or iCloud, scores the junk, unsubscribes for real.</span>
 </header>
 
 <div class="wrap" id="app" style="padding-top:24px">
@@ -139,9 +138,38 @@
     }));
   }
 
-  const connectHref = params.get('native') ? 'siftboxnative://connect' : '/auth/start';
+  const native = params.get('native');
+  function connectPicker() {
+    body.innerHTML = `
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <a class="btn" href="${native ? 'siftboxnative://connect/gmail' : '/auth/start'}">Connect Gmail →</a>
+        <a class="btn" href="${native ? 'siftboxnative://connect/outlook' : '/auth/start/outlook'}">Connect Outlook →</a>
+        <button class="btn" id="icloudBtn" style="cursor:pointer;">Connect iCloud →</button>
+      </div>
+      <form id="icloudForm" style="display:none;margin-top:12px;max-width:320px;">
+        <p style="font-size:13px;color:var(--muted);margin:0 0 8px;">iCloud has no sign-in flow like Gmail — use an <a href="https://support.apple.com/en-us/102654" target="_blank" rel="noopener">app-specific password</a>, not your Apple ID password.</p>
+        <input name="email" type="email" placeholder="you@icloud.com" required style="width:100%;padding:10px;margin-bottom:8px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-size:14px;">
+        <input name="appPassword" type="password" placeholder="app-specific password" required style="width:100%;padding:10px;margin-bottom:8px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-size:14px;">
+        <button type="submit" class="btn" style="cursor:pointer;">Connect →</button>
+        <p id="icloudErr" style="color:var(--accent);font-size:13px;margin:8px 0 0;"></p>
+      </form>`;
+    document.getElementById('icloudBtn').addEventListener('click', () => {
+      document.getElementById('icloudForm').style.display = 'block';
+    });
+    document.getElementById('icloudForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const r = await fetch('/auth/icloud', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: fd.get('email'), appPassword: fd.get('appPassword') }) });
+      if (!r.ok) { document.getElementById('icloudErr').textContent = await r.text(); return; }
+      const { token } = await r.json();
+      localStorage.setItem('sieve_token', token);
+      location.reload();
+    });
+  }
+
   fetch('/api/messages', { headers: authHeaders, credentials: 'include' }).then(r => {
-    if (r.status === 401) { body.innerHTML = `<a class="btn" href="${connectHref}">Connect Gmail →</a>`; return; }
+    if (r.status === 401) { connectPicker(); return; }
     if (!r.ok) { body.innerHTML = '<p style="margin:0;color:var(--muted);font-size:14px;">Could not load inbox.</p>'; return; }
     return r.json().then(render);
   });
