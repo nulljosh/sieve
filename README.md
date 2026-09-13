@@ -29,6 +29,10 @@ Open [siftbox.heyitsmejosh.com](https://siftbox.heyitsmejosh.com) (or the iOS/ma
 
 Full triage logic, spam scoring, and unsubscribe handling: [SKILL.md](SKILL.md).
 
+## Screenshots
+
+<img src="screenshots/iphone/01-inbox.png" width="200"> <img src="screenshots/ipad/01-inbox.png" width="280"> <img src="screenshots/mac/01-inbox.png" width="360">
+
 ## Architecture
 
 <img src="architecture.svg" width="600">
